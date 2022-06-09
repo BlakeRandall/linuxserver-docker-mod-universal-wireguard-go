@@ -1,0 +1,24 @@
+name: Sync - Submodule
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+jobs:
+  sync:
+    name: sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Update
+        run: |
+          git pull --recurse-submodules
+          git submodule update --remote --recursive
+      - name: Commit
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'github-action@noreply.github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git commit --all --author "GitHub Action <github-action@noreply.github.com>" --message "Submodule Sync" && (git push || true) || true
